@@ -1,0 +1,33 @@
+﻿name: Exercise 6 CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r exercises/05-docker-compose-flask/requirements.txt pytest
+
+      - name: Run automated tests
+        run: python -m pytest -v exercises/06-github-actions-ci/tests
+
+      - name: Build Docker image
+        run: docker build -t compose-flask:ci ./exercises/05-docker-compose-flask
