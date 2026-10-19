@@ -1,4 +1,4 @@
-from prometheus_client import Gauge, Summary, start_http_server
+﻿from prometheus_client import Gauge, Summary, start_http_server
 import random
 import time
 
@@ -11,7 +11,7 @@ average_delivery_time = Summary("average_delivery_time", "Observed delivery time
 
 def simulate_delivery():
     # The range intentionally crosses the alert threshold (> 10).
-    pending = random.randint(10, 20)
+    pending = random.randint(50, 100)
     on_the_way = random.randint(5, 20)
     delivered = random.randint(30, 70)
     avg_time = random.uniform(15, 45)
