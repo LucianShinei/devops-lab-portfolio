@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+    options {
+        skipDefaultCheckout()
+        disableConcurrentBuilds()
+    }
+    parameters {
+        booleanParam(name: 'FORCE_TEST_FAILURE', defaultValue: false,
+                     description: 'Demonstrate that a failed test blocks packaging.')
+    }
+    stages {
+        stage('Source checkout') {
+            steps {
+                deleteDir()
+                checkout scm
+            }
+        }
+        stage('Install dependencies') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh 'python3 -m venv .venv'
+                        sh '.venv/bin/python -m pip install -r question4-jenkins-metrics/requirements.txt'
+                    } else {
+                        bat 'python -m venv .venv'
+                        bat '.venv\\Scripts\\python.exe -m pip install -r question4-jenkins-metrics/requirements.txt'
+                    }
+                }
+            }
+        }
+        stage('Automated tests') {
+            steps {
+                script {
+                    def command = '-m unittest discover -s exercises/06-grafana-realtime-monitoring -p test_delivery_metrics.py -v'
+                    if (isUnix()) {
+                        sh ".venv/bin/python ${command}"
+                        sh '.venv/bin/python -m unittest discover -s question4-jenkins-metrics -v'
+                    } else {
+                        bat ".venv\\Scripts\\python.exe ${command}"
+                        bat '.venv\\Scripts\\python.exe -m unittest discover -s question4-jenkins-metrics -v'
+                    }
+                }
+            }
+        }
+        stage('Deployment packaging') {
+            steps {
+                script {
+                    if (isUnix()) {
+                        sh '.venv/bin/python question4-jenkins-metrics/package_deployment.py'
+                    } else {
+                        bat '.venv\\Scripts\\python.exe question4-jenkins-metrics/package_deployment.py'
+                    }
+                }
+                archiveArtifacts artifacts: 'delivery-metrics.zip', fingerprint: true
+            }
+        }
+    }
+}
